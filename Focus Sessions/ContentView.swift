@@ -10,20 +10,19 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @Query private var sessions: [FocusSession]
 
     var body: some View {
         NavigationSplitView {
             List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                ForEach(sessions) { session in
+                    NavigationLink(destination: SessionView(session: session)) {
+                        Text(session.title)
                     }
                 }
-                .onDelete(perform: deleteItems)
+                .onDelete(perform: deleteSessions)
             }
+            .navigationTitle("Focus Sessions")
 #if os(macOS)
             .navigationSplitViewColumnWidth(min: 180, ideal: 200)
 #endif
@@ -33,10 +32,11 @@ struct ContentView: View {
                     EditButton()
                 }
 #endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: addSession) {
+                        Label("Add Session", systemImage: "plus")
                     }
+                    .accessibilityIdentifier("addSessionButton")
                 }
             }
         } detail: {
@@ -44,17 +44,17 @@ struct ContentView: View {
         }
     }
 
-    private func addItem() {
+    private func addSession() {
         withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
+            let newSession = FocusSession(title: "New Session", duration: 1500)
+            modelContext.insert(newSession)
         }
     }
 
-    private func deleteItems(offsets: IndexSet) {
+    private func deleteSessions(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(items[index])
+                modelContext.delete(sessions[index])
             }
         }
     }
@@ -62,5 +62,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: [FocusSession.self], inMemory: true)
 }

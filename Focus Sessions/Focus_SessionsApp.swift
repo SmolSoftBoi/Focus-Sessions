@@ -10,18 +10,28 @@ import SwiftData
 
 @main
 struct Focus_SessionsApp: App {
-    var sharedModelContainer: ModelContainer = {
+    var sharedModelContainer: ModelContainer
+
+    init() {
+        NotificationManager.shared.requestAuthorization()
+
         let schema = Schema([
-            Item.self,
+            FocusSession.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            sharedModelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // Handle the error appropriately
+            print("Error initializing ModelContainer with configuration: \(error)")
+            do {
+                sharedModelContainer = try ModelContainer(for: schema)
+            } catch {
+                fatalError("Failed to initialize ModelContainer: \(error)")
+            }
         }
-    }()
+    }
 
     var body: some Scene {
         WindowGroup {
